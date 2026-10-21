@@ -1,0 +1,37 @@
+KidsTube
+Copyright (C) 2026 the KidsTube contributors
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/>.
+
+---------------------------------------------------------------------------
+
+This is a modified version of NouTube, which is licensed under the GNU Affero
+General Public License, version 3:
+
+    NouTube -- Copyright (C) the NouTube contributors
+    https://github.com/nonbili/NouTube
+
+NouTube is not endorsed by, and does not endorse, KidsTube. The NouTube
+name and logo remain the property of their respective owners and are used here
+only to credit the work this software is based on. The KidsTube name, icon and
+branding are new work.
+
+Because the AGPL requires the complete corresponding source of a modified
+version to be made available to the people who run it, this repository is the
+corresponding source for the KidsTube binaries distributed from it. Anyone
+running a KidsTube build is offered the source of that build.
+
+The content the app can show is decided at runtime by the person who installs
+it: KidsTube ships with a list of candidate videos that are all in the
+"pending" state until an adult approves them one by one. No video is
+approved by default, and the project ships no video of its own.

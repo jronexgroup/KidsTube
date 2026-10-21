@@ -212,7 +212,7 @@ export function interceptHttpRequest() {
           case 'search':
             return new Response(transformSearchResponse(text, currentBlocklist, transformOptions), responseInit)
           case 'get_watch':
-            return new Response(transformGetWatchResponse(text, transformOptions), responseInit)
+            return new Response(transformGetWatchResponse(text, currentBlocklist, transformOptions), responseInit)
           case 'reel':
             return new Response(transformReelResponse(text, currentBlocklist, transformOptions), responseInit)
           default:

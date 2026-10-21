@@ -6,6 +6,7 @@ import { isAndroid, isWeb } from '@/lib/utils'
 import { settings$ } from './settings'
 import { mainClient } from '@/lib/main-client'
 import { tabs$ } from './tabs'
+import { evaluateKidsUrl, isKidsMode } from '@/lib/kids-navigation'
 
 interface Store {
   url: string
@@ -71,6 +72,16 @@ interface Store {
     y: number
   } | null
 
+  // KidsTube: whether the curated library is on screen over the webview, and
+  // the last url the policy refused, so the app can say why.
+  kidsHomeVisible: boolean
+  blockedUrl: string
+  blockedReason: string
+
+  // The parent area: the gate in front of it and the area itself.
+  parentGateOpen: boolean
+  parentLibraryOpen: boolean
+
   // webview
   webview: any
 }
@@ -119,11 +130,44 @@ export const ui$ = observable<Store>({
 
   translation: null,
 
+  // KidsTube
+  kidsHomeVisible: true,
+  blockedUrl: '',
+  blockedReason: '',
+
+  // The parent area
+  parentGateOpen: false,
+  parentLibraryOpen: false,
+
   // webview
   webview: undefined,
 })
 
+/**
+ * Records that the policy refused a url and sends the child back to the
+ * library. Nothing outside the approved list is ever loaded.
+ */
+export function blockUrl(url: string, reason: string) {
+  ui$.blockedUrl.set(url)
+  ui$.blockedReason.set(reason)
+  if (isKidsMode()) {
+    ui$.kidsHomeVisible.set(true)
+  }
+}
+
 export function updateUrl(url: string) {
+  // The policy is checked before anything else, so no route can reach the
+  // webview without passing it.
+  if (!isKidsMode()) {
+    // The unrestricted mode keeps the old behaviour.
+  } else {
+    const decision = evaluateKidsUrl(url)
+    if (!decision.allowed) {
+      blockUrl(url, decision.reason)
+      return
+    }
+  }
+
   if (isWeb) {
     const webview = ui$.webview.get()
     webview?.executeJavaScript?.('NouTube.pause()')

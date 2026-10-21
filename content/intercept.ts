@@ -10,6 +10,28 @@ import {
 
 const adsBlocked = () => window.NouTube?.getSettings?.()?.blockAds !== false
 
+/**
+ * The ids of the videos a parent has approved, or undefined when the app is
+ * not in the restricted mode. When it is a set, every response is filtered
+ * down to it before the page renders it.
+ */
+const approvedVideoIds = (): Set<string> | undefined => {
+  if (window.NouTube?.getSettings?.()?.kidsMode === false) {
+    return undefined
+  }
+  const content = window.NouTube?.getApprovedContent?.()
+  if (!content) {
+    return new Set<string>()
+  }
+  const ids = new Set<string>()
+  for (const record of content.records || []) {
+    if (record?.approvalStatus === 'approved' && typeof record.videoId === 'string') {
+      ids.add(record.videoId)
+    }
+  }
+  return ids
+}
+
 export function intercept() {
   // Intercept initial page data (server-rendered in script tags)
   let initialData = (window as any).ytInitialData
@@ -20,7 +42,7 @@ export function intercept() {
     set(value) {
       try {
         const blocklist = window.NouTube?.getBlocklist?.()
-        filterListResponse(value, blocklist, { blockAds: adsBlocked() })
+        filterListResponse(value, blocklist, { blockAds: adsBlocked(), approvedVideoIds: approvedVideoIds() })
       } catch (error) {
         console.error('NouScript initialData:', error)
       }
@@ -39,7 +61,7 @@ export function intercept() {
     set(value) {
       try {
         const blocklist = window.NouTube?.getBlocklist?.()
-        const options = { blockAds: adsBlocked() }
+        const options = { blockAds: adsBlocked(), approvedVideoIds: approvedVideoIds() }
         if (typeof value === 'string') {
           value = transformReelResponse(value, blocklist, options)
         } else {
@@ -68,6 +90,7 @@ export function intercept() {
     const options = {
       showOriginalVideoTitle: Boolean(settings?.showOriginalVideoTitle),
       blockAds: settings?.blockAds !== false,
+      approvedVideoIds: approvedVideoIds(),
     }
     if (res.status > 200 || !match) {
       return res
@@ -82,7 +105,7 @@ export function intercept() {
       const fn =
         {
           browse: (text: string, blocklist?: any) => transformBrowseResponse(text, blocklist, options),
-          get_watch: (text: string) => transformGetWatchResponse(text, options),
+          get_watch: (text: string, blocklist?: any) => transformGetWatchResponse(text, blocklist, options),
           next: (text: string, blocklist?: any) => transformBrowseResponse(text, blocklist, options),
           reel: (text: string, blocklist?: any) => transformReelResponse(text, blocklist, options),
           search: (text: string, _blocklist?: any) =>
@@ -117,12 +140,13 @@ export function intercept() {
       const options = {
         showOriginalVideoTitle: Boolean(settings?.showOriginalVideoTitle),
         blockAds: settings?.blockAds !== false,
+        approvedVideoIds: approvedVideoIds(),
       }
       try {
         const fn =
           {
             browse: (text: string, blocklist?: any) => transformBrowseResponse(text, blocklist, options),
-            get_watch: (text: string) => transformGetWatchResponse(text, options),
+            get_watch: (text: string, blocklist?: any) => transformGetWatchResponse(text, blocklist, options),
             next: (text: string, blocklist?: any) => transformBrowseResponse(text, blocklist, options),
             reel: (text: string, blocklist?: any) => transformReelResponse(text, blocklist, options),
             search: (text: string, _blocklist?: any) =>

@@ -2,6 +2,7 @@ import i18n from 'i18next'
 import type { Resource } from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import enText from '@/locales/en.json'
+import bnText from '@/locales/bn.json'
 import deText from '@/locales/de.json'
 import esText from '@/locales/es.json'
 import frText from '@/locales/fr.json'
@@ -18,10 +19,11 @@ import zhHansText from '@/locales/zh_Hans.json'
 import zhHantText from '@/locales/zh_Hant.json'
 import type { Locale } from 'expo-localization'
 
-export const supportedI18nLanguages = ['de', 'en', 'es', 'fr', 'id', 'ja', 'pl', 'pt', 'pt_BR', 'ru', 'tr', 'uk', 'vi', 'zh_Hans', 'zh_Hant'] as const
+export const supportedI18nLanguages = ['bn', 'de', 'en', 'es', 'fr', 'id', 'ja', 'pl', 'pt', 'pt_BR', 'ru', 'tr', 'uk', 'vi', 'zh_Hans', 'zh_Hant'] as const
 export type SupportedI18nLanguage = (typeof supportedI18nLanguages)[number]
 
 export const i18nLanguageNativeNames: Record<SupportedI18nLanguage, string> = {
+  bn: 'বাংলা',
   de: 'Deutsch',
   en: 'English',
   es: 'Español',
@@ -40,6 +42,9 @@ export const i18nLanguageNativeNames: Record<SupportedI18nLanguage, string> = {
 }
 
 const resources: Resource = {
+  bn: {
+    translation: bnText,
+  },
   en: {
     translation: enText,
   },

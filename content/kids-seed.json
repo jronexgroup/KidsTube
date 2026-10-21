@@ -1,0 +1,281 @@
+{
+  "videos": [
+    {
+      "videoId": "JhTj_yCWgys",
+      "title": "English alphabet",
+      "language": "en",
+      "category": "english_alphabet",
+      "learningGoals": ["letter_recognition", "alphabet_order"],
+      "reviewNotes": "Candidate from the supplied list. The title in the list was legible but no channel was given."
+    },
+    {
+      "videoId": "9UOPCfZgMgU",
+      "title": "English Number",
+      "language": "en",
+      "category": "english_counting",
+      "learningGoals": ["number_recognition", "counting"],
+      "reviewNotes": "Candidate from the supplied list. Title truncated in the source."
+    },
+    {
+      "videoId": "1itfhRRlvUY",
+      "title": "Bebefinn ABC Song",
+      "channelName": "Bebefinn",
+      "language": "en",
+      "category": "english_alphabet",
+      "learningGoals": ["alphabet_song", "letter_recognition"]
+    },
+    {
+      "videoId": "NpDBZiD56a0",
+      "title": "My First ABCD Class",
+      "channelName": "ABCD bangla kids class",
+      "language": "mixed",
+      "category": "english_alphabet",
+      "learningGoals": ["letter_recognition", "phonics"],
+      "reviewNotes": "The channel is listed as Bengali to English, so the spoken language has to be checked."
+    },
+    {
+      "videoId": "Nkmarl4ynRM",
+      "title": "Title not legible in the supplied list",
+      "language": "mixed",
+      "category": "everyday_knowledge",
+      "reviewNotes": "The title could not be read from the source list. The video has to be watched before this can be approved."
+    },
+    {
+      "videoId": "EVIJd4MGlG4",
+      "title": "Twinkle Twinkle & More",
+      "language": "en",
+      "category": "english_rhymes",
+      "learningGoals": ["rhythm", "letter_sounds"]
+    },
+    {
+      "videoId": "rz-vqMXZuOw",
+      "title": "Educational Nursery Rhymes",
+      "language": "en",
+      "category": "english_rhymes",
+      "learningGoals": ["rhythm", "vocabulary"]
+    },
+    {
+      "videoId": "sP3Rz2b1Ok4",
+      "title": "ABC Song | Islamic Alpha",
+      "language": "mixed",
+      "category": "english_alphabet",
+      "learningGoals": ["alphabet_song"],
+      "reviewNotes": "English alphabet taught with an Islamic theme. The wording has to be checked before it is approved."
+    },
+    {
+      "videoId": "_Gvfay-qbT4",
+      "title": "অ'য় অজগর আসছে তেড়ে",
+      "channelName": "Jugnu Kids - Bangla Nursery Rhymes & Baby Songs",
+      "language": "bn",
+      "category": "bengali_rhymes",
+      "learningGoals": ["rhythm", "bengali_pronunciation"],
+      "reviewNotes": "The row alignment in the source list is uncertain: the channel name may belong to the next row."
+    },
+    {
+      "videoId": "MlGNAARHmm0",
+      "title": "অ আ ই ইসলামিক বাংলা বর্ণমালা",
+      "channelName": "SHiKHI SHiKHi",
+      "language": "bn",
+      "category": "islamic_quran",
+      "learningGoals": ["arabic_letters_in_bengali", "pronunciation"],
+      "reviewNotes": "The Arabic letters are taught in Bengali. The pronunciation has to be checked against a reliable source."
+    },
+    {
+      "videoId": "-3jA6KloUss",
+      "title": "অ তে অযু | শিশুদের জন্য ইসলামিক বাংলা বর্ণমালা গান",
+      "channelName": "Kids Creation TV",
+      "language": "bn",
+      "category": "islamic_nasheeds",
+      "learningGoals": ["arabic_letters_in_bengali", "song"],
+      "reviewNotes": "A nasheed. The lyrics and the way the letters are pronounced both need an adult review."
+    },
+    {
+      "videoId": "UYT7EEaFPwM",
+      "title": "বাংলা সংখ্যা ১ থেকে...",
+      "channelName": "Evas Learn",
+      "language": "bn",
+      "category": "bengali_numbers",
+      "learningGoals": ["number_recognition", "counting"],
+      "reviewNotes": "The title was truncated in the source list."
+    },
+    {
+      "videoId": "R2TTSYdVun0",
+      "title": "Bangla Namta 1",
+      "channelName": "Evas Learn",
+      "language": "bn",
+      "category": "bengali_numbers",
+      "learningGoals": ["counting", "number_recognition"]
+    },
+    {
+      "videoId": "w0IIg8jVY04",
+      "title": "Bangla Namta 6",
+      "channelName": "Evas Learn",
+      "language": "bn",
+      "category": "bengali_numbers",
+      "learningGoals": ["counting", "number_recognition"]
+    },
+    {
+      "videoId": "o0lg-U4PQ4g",
+      "title": "আলিফ বা তা ছা | Quran Alphabet for Beginners",
+      "channelName": "5 Minute Solution BD",
+      "language": "bn",
+      "category": "islamic_quran",
+      "learningGoals": ["arabic_alphabet", "pronunciation"],
+      "reviewNotes": "Bengali medium. The pronunciation of the letters has to be checked."
+    },
+    {
+      "videoId": "vVoLgjKFe2Q",
+      "title": "Alifun Allah | Alif Baa Taa Arabic Alphabet Song for Kids",
+      "language": "mixed",
+      "category": "islamic_nasheeds",
+      "learningGoals": ["arabic_alphabet", "song"],
+      "reviewNotes": "The language of the song is not recorded in the source list."
+    },
+    {
+      "videoId": "z--F7-Ufo98",
+      "title": "ALIFUN BA TA UN SA",
+      "language": "ar",
+      "category": "islamic_quran",
+      "learningGoals": ["arabic_alphabet", "pronunciation"],
+      "reviewNotes": "The source list marks this one as needing a review of its title and its content."
+    }
+  ],
+  "channels": [
+    {
+      "handle": "PRINIT1419",
+      "name": "PRINIT",
+      "url": "https://www.youtube.com/@PRINIT1419",
+      "language": "en",
+      "category": "english_alphabet",
+      "notes": "Listed twice in the source list. Review the individual videos rather than the whole channel."
+    },
+    {
+      "handle": "Bebefinn",
+      "name": "Bebefinn",
+      "url": "https://www.youtube.com/@Bebefinn",
+      "language": "en",
+      "category": "english_alphabet",
+      "notes": "English learning candidate. Review the individual videos."
+    },
+    {
+      "handle": "ABCDbanglakidsclass",
+      "name": "ABCD bangla kids class",
+      "url": "https://www.youtube.com/@ABCDbanglakidsclass",
+      "language": "mixed",
+      "category": "english_alphabet",
+      "notes": "Bengali to English candidate. Check the language of each video."
+    },
+    {
+      "handle": "ChuChuTV",
+      "name": "ChuChu TV Nursery Rhymes & Kids Songs",
+      "url": "https://www.youtube.com/@ChuChuTV",
+      "language": "en",
+      "category": "english_rhymes",
+      "notes": "Review the individual videos."
+    },
+    {
+      "handle": "KidsCarnivalOfficial",
+      "name": "Kids Carnival",
+      "url": "https://www.youtube.com/@KidsCarnivalOfficial",
+      "language": "en",
+      "category": "everyday_knowledge",
+      "notes": "Review the individual videos."
+    },
+    {
+      "handle": "LooLooKids",
+      "name": "LooLoo Kids - Nursery Rhymes and Children's Songs",
+      "url": "https://www.youtube.com/@LooLooKids",
+      "language": "en",
+      "category": "english_rhymes",
+      "notes": "Review the individual videos."
+    },
+    {
+      "handle": "SHiKHISHiKHi13",
+      "name": "SHiKHI SHiKHi",
+      "url": "https://www.youtube.com/@SHiKHISHiKHi13",
+      "language": "en",
+      "category": "english_alphabet",
+      "notes": "Check the language of each video."
+    },
+    {
+      "handle": "JugnuKids",
+      "name": "Jugnu Kids - Bangla Nursery Rhymes & Baby Songs",
+      "url": "https://www.youtube.com/@JugnuKids",
+      "language": "bn",
+      "category": "bengali_rhymes",
+      "notes": "The handle is a guess from the channel name and has to be confirmed before it is used."
+    },
+    {
+      "handle": "KidsCreationTV",
+      "name": "Kids Creation TV",
+      "url": "https://www.youtube.com/@KidsCreationTV",
+      "language": "bn",
+      "category": "islamic_nasheeds",
+      "notes": "The handle is a guess from the channel name and has to be confirmed before it is used."
+    },
+    {
+      "handle": "5MinuteSolutionBD",
+      "name": "5 Minute Solution BD",
+      "url": "https://www.youtube.com/@5MinuteSolutionBD",
+      "language": "bn",
+      "category": "islamic_quran",
+      "notes": "Bengali to Arabic. The handle is a guess from the channel name and has to be confirmed."
+    },
+    {
+      "handle": "EvasLearn",
+      "name": "Evas Learn",
+      "url": "https://www.youtube.com/@EvasLearn",
+      "language": "bn",
+      "category": "bengali_numbers",
+      "notes": "The handle is a guess from the channel name and has to be confirmed."
+    },
+    {
+      "handle": "HutumSchoolRhymes",
+      "name": "Hutum School Rhymes - বাংলা ছড়া",
+      "url": "https://www.youtube.com/@HutumSchoolRhymes",
+      "language": "bn",
+      "category": "bengali_rhymes",
+      "notes": "The handle is a guess from the channel name and has to be confirmed."
+    },
+    {
+      "handle": "TheKidsIslamicSchool",
+      "name": "The Kids Islamic School",
+      "url": "https://www.youtube.com/@TheKidsIslamicSchool",
+      "language": "bn",
+      "category": "islamic_quran",
+      "notes": "The handle is a guess from the channel name and has to be confirmed."
+    },
+    {
+      "handle": "HasiKhushiRhymes",
+      "name": "Hasi Khushi Rhymes",
+      "url": "https://www.youtube.com/@HasiKhushiRhymes",
+      "language": "bn",
+      "category": "bengali_rhymes",
+      "notes": "The handle is a guess from the channel name and has to be confirmed."
+    },
+    {
+      "handle": "ChottoDuniya",
+      "name": "ChottoDuniya",
+      "url": "https://www.youtube.com/@ChottoDuniya",
+      "language": "bn",
+      "category": "everyday_knowledge",
+      "notes": "The handle is a guess from the channel name and has to be confirmed."
+    },
+    {
+      "handle": "MadaniChannelBanglaOfficial",
+      "name": "Madani Channel Bangla Official",
+      "url": "https://www.youtube.com/@MadaniChannelBanglaOfficial",
+      "language": "bn",
+      "category": "islamic_stories",
+      "notes": "The handle is a guess from the channel name and has to be confirmed."
+    },
+    {
+      "handle": "YouQariaKids",
+      "name": "YouQaria Kids Nursery Rhymes & Islamic Cartoons",
+      "url": "https://www.youtube.com/@YouQariaKids",
+      "language": "mixed",
+      "category": "islamic_nasheeds",
+      "notes": "Urdu to Arabic. The handle is a guess from the channel name and has to be confirmed."
+    }
+  ]
+}

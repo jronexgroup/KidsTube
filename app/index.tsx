@@ -17,6 +17,7 @@ import { sleepTimer$ } from '@/states/sleep-timer'
 import { showToast } from '@/lib/toast'
 import { t } from 'i18next'
 import { addSleepTimerListener, getNativeSleepTimerRemainingMs, hasSleepTimerNativeSupport } from '@/lib/sleep-timer-native'
+import { isKidsMode } from '@/lib/kids-navigation'
 
 // The activity can be recreated while the process (and this JS runtime) stays
 // alive on the media service, so the launch intent has to be read on every
@@ -108,6 +109,29 @@ export default function HomeScreen() {
       // browsing webview instead of stepping back through videos.
       if (handleSplitBack()) {
         return true
+      }
+      // In the restricted session the library is the way back. The webview's
+      // own history is not walked, because it could hold a page that was
+      // never approved.
+      if (isKidsMode()) {
+        if (!ui$.kidsHomeVisible.get()) {
+          ui$.kidsHomeVisible.set(true)
+          void ui$.webview
+            .get()
+            ?.executeJavaScript?.('window.NouTube?.pause?.()')
+            ?.catch?.(() => undefined)
+          return true
+        }
+        if (ui$.parentGateOpen.get()) {
+          ui$.parentGateOpen.set(false)
+          return true
+        }
+        if (ui$.parentLibraryOpen.get()) {
+          ui$.parentLibraryOpen.set(false)
+          return true
+        }
+        // At the library with nothing open, the app closes.
+        return false
       }
       const webview = ui$.webview.get()
       webview?.goBack()

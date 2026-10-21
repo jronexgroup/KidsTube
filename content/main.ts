@@ -18,6 +18,8 @@ import { installSystemCaptionStyle } from './captions'
 import { installEncodedAuthorNameFix } from './author-names'
 import { guardMediaSessionHandlers, installBackgroundGuard } from './background-guard'
 import { installSplitView, navigateWatch, setMuted, setNativeMini } from './split-view'
+import { installKidsGuard, refreshApprovedContent } from './kids-guard'
+import { noutubeApprovedContentEvent } from './noutube'
 
 try {
   if ((window as any).NouTubePreferH264) {
@@ -43,6 +45,11 @@ try {
   interceptClipboard()
   installWatchNavigation()
   installSplitView()
+  installKidsGuard()
+
+  // A parent approving a video has to reach the page, so the allowlist the
+  // page filters by is refreshed whenever it changes.
+  window.addEventListener(noutubeApprovedContentEvent, () => refreshApprovedContent())
 
   if (!window.electron) {
     intercept()

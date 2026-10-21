@@ -1,3 +1,20 @@
+# <img src="desktop/icon.png" align="top" height="44"> KidsTube
+
+A Bengali-first, parent-approved video app for children, built as a modified
+version of [NouTube](https://github.com/nonbili/NouTube).
+
+**A child sees only the videos a parent has approved.** Shorts, search, the
+home feed, channel browsing and external links are gone. A PIN-gated parent
+area decides what is watchable, and every decision is recorded.
+
+See **[README-KIDSTUBE.md](/README-KIDSTUBE.md)** for the full description, the
+policy, the build steps and the known limitations.
+
+> This app is not tamper-proof and does not replace the device's own parental
+> controls. Use Family Link or Screen Time as the real boundary.
+
+---
+
 # <img src="desktop/icon.png" align="top" height="44"> NouTube
 
 Android, iOS, and Desktop app for YouTube and YouTube Music.

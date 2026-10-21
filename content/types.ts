@@ -24,6 +24,8 @@ declare global {
     NouTubeDownloads?: boolean
     NouTubeBlocklist?: import('../lib/blocklist').BlocklistSnapshot
     NouTubeUserStyles?: import('../lib/user-styles').UserStylesSnapshot
+    // The videos a parent has approved; the page filters its responses by them.
+    NouTubeApprovedContent?: import('../lib/content-policy').ApprovedContentSnapshot
     NouTubeI: NouTubeI
     NouTubeToken?: string
     // Real app visibility fed by NouTubeView.onWindowVisibilityChanged; the

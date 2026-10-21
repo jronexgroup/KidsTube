@@ -16,17 +16,34 @@ interface TransformOptions {
   // Ad blocking is a separate choice from background playback: a user can keep
   // the intercept running and still let ads through to support creators.
   blockAds?: boolean
+  /**
+   * The ids of the videos a parent has approved. When this is a set, the
+   * response is filtered down to it: every video that is not in the set is
+   * removed before the page ever renders it.
+   */
+  approvedVideoIds?: Set<string>
 }
 
 const blocksAds = (options: TransformOptions) => options.blockAds !== false
 
-export function transformGetWatchResponse(text: string, options: TransformOptions = {}) {
+/** Whether the allowlist filter is in force. */
+const filtersByAllowlist = (options: TransformOptions) =>
+  options.approvedVideoIds instanceof Set
+
+export function transformGetWatchResponse(
+  text: string,
+  blocklist?: BlocklistSnapshot,
+  options: TransformOptions = {},
+) {
   const data = JSON.parse(text)
   if (blocksAds(options)) {
     stripAdKeys(data[0].playerResponse)
   }
   applyPlayerResponseOriginalTitle(data[0].playerResponse, options)
   rewriteOriginalTitles(data, options)
+  // The watch response carries the "up next" list and the channel panel, so
+  // it has to be filtered as well.
+  filterListResponse(data, blocklist, options)
   return JSON.stringify(data)
 }
 
@@ -111,15 +128,115 @@ export function filterListResponse(data: any, blocklist?: BlocklistSnapshot, opt
   }
 
   const dropAds = blocksAds(options)
+  const allowlist = filtersByAllowlist(options) ? options.approvedVideoIds! : undefined
   for (const key of Object.keys(data)) {
     const value = data[key]
     if (Array.isArray(value)) {
-      data[key] = value.filter((item) => !(dropAds && isAdItem(item)) && !itemMatchesBlocklist(item, blocklist))
+      data[key] = value.filter(
+        (item) =>
+          !(dropAds && isAdItem(item)) &&
+          !itemMatchesBlocklist(item, blocklist) &&
+          !itemFailsAllowlist(item, allowlist),
+      )
       data[key].forEach((item: any) => filterListResponse(item, blocklist, options))
     } else if (value && typeof value === 'object') {
       filterListResponse(value, blocklist, options)
     }
   }
+}
+
+/**
+ * Renderers that lead somewhere the child is not allowed to go. They carry no
+ * video of their own, so the allowlist cannot rule them out on the video id
+ * alone.
+ */
+const DISALLOWED_RENDERER_KEYS = [
+  // A shelf of Shorts, which is what the mobile site uses for a shelf of
+  // anything that is mixed between videos and Shorts.
+  'gridShelfViewModel',
+  // Playlists and radio mixes are lists of videos that are not approved.
+  'playlistRenderer',
+  'compactPlaylistRenderer',
+  'gridPlaylistRenderer',
+  'radioRenderer',
+  // Channel links lead to a page full of uploads that were never reviewed.
+  'channelRenderer',
+  'gridChannelRenderer',
+  'compactChannelRenderer',
+  'newChannelRenderer',
+  // Live chat is not a place for a child to be.
+  'liveChatRenderer',
+  'liveChatContinuation',
+]
+
+/**
+ * Whether a list item has to go because the allowlist does not cover it.
+ *
+ * An item that carries no video of its own is left alone: the allowlist is
+ * about videos, and the renderers that lead nowhere watchable are dropped by
+ * their own keys.
+ */
+function itemFailsAllowlist(item: any, approved?: Set<string>): boolean {
+  if (!approved) {
+    return false
+  }
+  if (!item || typeof item !== 'object') {
+    return false
+  }
+
+  if (DISALLOWED_RENDERER_KEYS.some((key) => item[key])) {
+    return true
+  }
+
+  const ids = getDirectRenderers(item)
+    .map((renderer) => extractRendererVideoId(renderer))
+    .filter((id): id is string => Boolean(id))
+
+  // Nothing that names a video: not a video item, so not this filter's job.
+  if (!ids.length) {
+    return false
+  }
+
+  return ids.some((id) => !approved.has(id))
+}
+
+/**
+ * The video id a renderer points at. YouTube moves this around between the
+ * desktop and the mobile site, and between the older and the newer renderers,
+ * so every place it is known to live is tried.
+ */
+function extractRendererVideoId(renderer: any): string {
+  if (!renderer || typeof renderer !== 'object') {
+    return ''
+  }
+
+  const candidates = [
+    renderer.videoId,
+    renderer.contentId,
+    renderer.navigationEndpoint?.watchEndpoint?.videoId,
+    renderer.navigationEndpoint?.reelWatchEndpoint?.videoId,
+    renderer.onTap?.innertubeCommand?.reelWatchEndpoint?.videoId,
+    renderer.onTap?.innertubeCommand?.watchEndpoint?.videoId,
+    renderer.rendererContext?.commandContext?.onTap?.innertubeCommand?.reelWatchEndpoint?.videoId,
+    renderer.rendererContext?.commandContext?.onTap?.innertubeCommand?.watchEndpoint?.videoId,
+    renderer.navigationEndpoint?.commandMetadata?.webCommandMetadata?.url,
+  ]
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== 'string' || !candidate) {
+      continue
+    }
+    if (/^[A-Za-z0-9_-]{11}$/.test(candidate)) {
+      return candidate
+    }
+    // A url such as /watch?v=<id> or /shorts/<id>.
+    const match = candidate.match(/[?&]v=([A-Za-z0-9_-]{11})/) || candidate.match(/\/(?:shorts|v|embed|live)\/([A-Za-z0-9_-]{11})/)
+    if (match) {
+      return match[1]
+    }
+  }
+
+  return ''
 }
 
 // Renderers that carry an ad/promo instead of real content. Dropping the whole

@@ -24,6 +24,10 @@ declare class NouTubeViewModule extends NativeModule {
     blockAds?: boolean
     discordPresence?: boolean
   }): void
+  /* The videos a parent has approved. The webview refuses every other url. */
+  setApprovedContent(videoIds: string[], previewVideoId: string): void
+  /* Turns the KidsTube restrictions off. Only the parent area may do this. */
+  setKidsMode(enabled: boolean): void
   extractTakeoutCsvFiles(uri: string): Promise<Array<{ name: string; uri: string }>>
   setSleepTimer(durationMs: number): Promise<void>
   clearSleepTimer(): Promise<void>

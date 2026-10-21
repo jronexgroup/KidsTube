@@ -542,6 +542,15 @@ class NouTubeView(context: Context, appContext: AppContext) : ExpoView(context, 
 
           override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
             val uri = Uri.parse(url)
+            // KidsTube refuses everything that is not an approved video, so
+            // the page cannot walk out of the library through a link.
+            if (NouKidsPolicy.enabled) {
+              if (!NouKidsPolicy.isAllowed(url)) {
+                emit("kids-blocked", mapOf("url" to url))
+                return true
+              }
+              return false
+            }
             if (uri.scheme == "vnd.youtube.music") {
               emit("yt-music-desktop", mapOf<String, Any>())
               return true

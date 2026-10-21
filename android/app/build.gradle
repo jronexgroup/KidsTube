@@ -98,16 +98,16 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'jp.nonbili.noutube'
+    namespace 'jp.nonbili.kidstube'
     defaultConfig {
-        applicationId 'jp.nonbili.noutube'
+        applicationId 'jp.nonbili.kidstube'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 83
         versionName "0.7.3"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
-        resourceConfigurations += ["b+en", "b+de", "b+es", "b+fr", "b+id", "b+ja", "b+pl", "b+pt", "b+pt+BR", "b+ru", "b+tr", "b+uk", "b+vi", "b+zh+Hans", "b+zh+Hant"]
+        resourceConfigurations += ["b+bn", "b+en", "b+de", "b+es", "b+fr", "b+id", "b+ja", "b+pl", "b+pt", "b+pt+BR", "b+ru", "b+tr", "b+uk", "b+vi", "b+zh+Hans", "b+zh+Hant"]
     }
     signingConfigs {
         debug {

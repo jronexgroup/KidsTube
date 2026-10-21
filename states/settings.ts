@@ -9,6 +9,11 @@ export interface SettingsSnapshot {
   language: SupportedI18nLanguage | null
   home: 'yt' | 'yt-music'
 
+  // KidsTube mode: the child only sees the approved library. It is on by
+  // default and can only be turned off from the parent area, which is behind
+  // the PIN, so it is deliberately not offered in the general settings.
+  kidsMode: boolean
+
   autoHideHeader: boolean
   autoHideSidebar: boolean
   doubleTapToToggleHeader: boolean
@@ -153,6 +158,9 @@ export const normalizeSettings = <T extends Partial<SettingsSnapshot> | undefine
   if (typeof data.blockAds !== 'boolean') {
     data.blockAds = true
   }
+  if (typeof data.kidsMode !== 'boolean') {
+    data.kidsMode = true
+  }
   if (typeof data.discordPresence !== 'boolean') {
     data.discordPresence = false
   }
@@ -214,6 +222,7 @@ export const normalizeSettings = <T extends Partial<SettingsSnapshot> | undefine
 export const getSettingsSnapshot = (value: Partial<Store> | undefined = settings$.get()): SettingsSnapshot => ({
   language: normalizeI18nLanguage(value?.language),
   home: value?.home === 'yt-music' ? 'yt-music' : 'yt',
+  kidsMode: typeof value?.kidsMode === 'boolean' ? value.kidsMode : true,
 
   autoHideHeader: Boolean(value?.autoHideHeader),
   autoHideSidebar: Boolean(value?.autoHideSidebar),
@@ -288,6 +297,7 @@ export const settings$ = observable<Store>({
     settings$.language.set(normalizeI18nLanguage(language))
   },
   home: 'yt',
+  kidsMode: true,
   isYTMusic: (): boolean => settings$.home.get() === 'yt-music',
 
   autoHideHeader: false,

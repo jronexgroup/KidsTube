@@ -8,7 +8,8 @@ import { bookmarks$, newBookmark } from '@/states/bookmarks'
 import { createLogger } from '@/lib/log'
 import { EmbedVideoModal } from '@/components/modal/EmbedVideoModal'
 import NouTubeViewModule, { NouTubeView } from '@/modules/nou-tube-view'
-import { StyleSheet, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import MaterialIcons from '@react-native-vector-icons/material-icons'
 import { setPageUrl } from '@/lib/page'
 import { getNextQueueUrl, trackQueueEnded, trackQueuePlaying } from '@/lib/queue'
 import { getLastPlaying } from '@/lib/last-playing'
@@ -37,6 +38,11 @@ import { history$ } from '@/states/history'
 import { buildUserScriptSources, userScriptsInvalidationSource } from '@/lib/user-styles'
 import { getUserStylesSnapshot, userStyles$ } from '@/states/user-styles'
 import { blocklist$, getBlocklistSnapshot } from '@/states/blocklist'
+import { approvedContent$, getApprovedContentSnapshot } from '@/states/approved-content'
+import { clearPreview, getPreviewVideoId, getWatchUrl, isKidsMode, requestPreview } from '@/lib/kids-navigation'
+import { KidsHome } from '@/components/kids/KidsHome'
+import { ParentGateModal } from '@/components/modal/ParentGateModal'
+import { ParentLibraryModal } from '@/components/modal/ParentLibraryModal'
 import { addSystemCaptionStyleListener, getSystemCaptionStyle } from '@/lib/system-captions'
 import { addSystemDesktopModeListener, getSystemDesktopMode } from '@/lib/desktop-mode'
 import { addPictureInPictureListener } from '@/lib/picture-in-picture'
@@ -61,6 +67,20 @@ import {
 
 let restored = false
 const logger = createLogger('sync')
+
+const styles = StyleSheet.create({
+  kidsBackButton: {
+    position: 'absolute',
+    left: 12,
+    zIndex: 3,
+    height: 40,
+    width: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+})
 
 const onScroll = ({
   dy,
@@ -129,6 +149,7 @@ const getContentSettingsSnapshot = () => {
     translationTargetLanguage,
     replaceWatchNavigation,
     useSystemCaptionStyle,
+    kidsMode,
   } = settings$.get()
   return {
     sponsorBlock,
@@ -143,6 +164,12 @@ const getContentSettingsSnapshot = () => {
     translateComments: !isWeb && translateComments && Boolean(translationTargetLanguage),
     replaceWatchNavigation,
     captionStyle: useSystemCaptionStyle ? getSystemCaptionStyle() : null,
+    // The page needs to know whether it is running inside the restricted
+    // KidsTube session, because the rules are different there.
+    kidsMode,
+    // Shorts are never allowed in the restricted session, whatever the
+    // preference says.
+    hideShorts: kidsMode ? true : settings$.hideShorts.get(),
   }
 }
 
@@ -375,6 +402,10 @@ const DesktopTabView: React.FC<{
 export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) => {
   const pageUrl = useValue(ui$.pageUrl)
   const embedVideoId = useValue(ui$.embedVideoId)
+  const kidsHomeVisible = useValue(ui$.kidsHomeVisible)
+  const parentGateOpen = useValue(ui$.parentGateOpen)
+  const parentLibraryOpen = useValue(ui$.parentLibraryOpen)
+  const kidsMode = useValue(settings$.kidsMode)
   usePasteUrl()
   const tabs = useValue(tabs$.tabs)
   const activeTabIndex = useValue(tabs$.activeTabIndex)
@@ -382,7 +413,10 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
   const currentPageUrl = isWeb ? activePageUrl : pageUrl
   const nativeRef = useRef<typeof NouTubeViewModule>(null)
   const playerRef = useRef<typeof NouTubeViewModule>(null)
-  const splitWatchView = useValue(settings$.miniPlayer) && isAndroid
+  // The split watch view keeps a second webview around for the player. It is
+  // a distraction in the restricted session, and a second place a page could
+  // go, so it stays off there.
+  const splitWatchView = useValue(settings$.miniPlayer) && isAndroid && !kidsMode
   const playerUrl = useValue(ui$.playerUrl)
   const playerMode = useValue(ui$.playerMode)
   const playerFull = playerMode === 'full'
@@ -438,6 +472,7 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
     `window.NouTubeClickbaitThumbnail = ${JSON.stringify(settings$.clickbaitThumbnail.get())};` +
     `window.NouTubeUserStyles = ${JSON.stringify(getUserStylesSnapshot())};` +
     `window.NouTubeBlocklist = ${JSON.stringify(getBlocklistSnapshot())};` +
+    `window.NouTubeApprovedContent = ${JSON.stringify(getApprovedContentSnapshot())};` +
     `window.NouTubeDownloads = ${isIos ? 'false' : 'true'};`
   // Subscribed so the next document starts with the current preference: the
   // prelude decides what the in-page interceptor strips before the page renders,
@@ -453,6 +488,7 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
     `window.NouTubeClickbaitThumbnail = ${JSON.stringify(clickbaitThumbnail)};` +
     `window.NouTubeUserStyles = ${JSON.stringify(getUserStylesSnapshot())};` +
     `window.NouTubeBlocklist = ${JSON.stringify(getBlocklistSnapshot(blocklistState))};` +
+    `window.NouTubeApprovedContent = ${JSON.stringify(getApprovedContentSnapshot())};` +
     `window.NouTubeDownloads = ${isIos ? 'false' : 'true'};`
   const { userId, me } = useMe()
   const userAgent = resolveUserAgent(
@@ -551,6 +587,30 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
     }
   }, [nativeViews])
 
+  /**
+   * Hands the approved library to the page, which filters its responses by
+   * it, and to the native view, which refuses every url that is not an
+   * approved video.
+   */
+  const syncApprovedContent = useCallback(() => {
+    const snapshot = getApprovedContentSnapshot()
+    const value = JSON.stringify(snapshot)
+    for (const ref of nativeViews()) {
+      ref.executeJavaScript(`window.NouTube?.setApprovedContent?.(${value})`)
+    }
+    if (isAndroid) {
+      const ids = snapshot.records
+        .filter((record) => record.approvalStatus === 'approved')
+        .map((record) => record.videoId)
+      try {
+        NouTubeViewModule.setApprovedContent(ids, getPreviewVideoId())
+        NouTubeViewModule.setKidsMode(isKidsMode())
+      } catch (error) {
+        console.error('setApprovedContent failed', error)
+      }
+    }
+  }, [nativeViews])
+
   const syncSettingsToWebview = useCallback(() => {
     const settings = getContentSettingsSnapshot()
     const value = JSON.stringify(settings)
@@ -574,6 +634,12 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
 
   useEffect(() => {
     if (isWeb || ui$.url.get()) {
+      return
+    }
+    if (isKidsMode()) {
+      // The restricted session starts on the library, not on YouTube's own
+      // home page: that page is a feed of things no parent has looked at.
+      ui$.kidsHomeVisible.set(true)
       return
     }
     // Start straight on the last playing video with its position in the url:
@@ -685,6 +751,7 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
             toggleShorts(hideShorts)
             syncUserStylesToWebview()
             syncBlocklistToWebview()
+            syncApprovedContent()
             syncSettingsToWebview()
           }
           break
@@ -781,7 +848,22 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
           handleShortcuts(data)
           break
         case 'paste':
+          // Pasting a url would open a page of the child's choosing, which is
+          // exactly what the restricted session is for.
+          if (isKidsMode()) {
+            break
+          }
           openPastedUrl(data)
+          break
+        case 'kids-blocked':
+          // The policy refused a navigation. The child goes back to the
+          // library rather than staying on a page that was never approved.
+          ui$.blockedUrl.set(typeof data?.url === 'string' ? data.url : '')
+          ui$.blockedReason.set(typeof data?.reason === 'string' ? data.reason : '')
+          if (isKidsMode()) {
+            ui$.kidsHomeVisible.set(true)
+            showToast(t('kids.blockedTitle'))
+          }
           break
         case 'load-error':
           // Recorded against the webview that raised it rather than dropped
@@ -816,6 +898,7 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
       hideToolbarWhenScrolled,
       syncSettingsToWebview,
       syncBlocklistToWebview,
+      syncApprovedContent,
       syncUserStylesToWebview,
       toggleShorts,
       currentPageUrl,
@@ -1055,6 +1138,8 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
   })
   useObserveEffect(userStyles$, () => syncUserStylesToWebview())
   useObserveEffect(blocklist$, () => syncBlocklistToWebview())
+  useObserveEffect(approvedContent$, () => syncApprovedContent())
+  useObserveEffect(settings$.kidsMode, () => syncApprovedContent())
 
   const syncProxyToSession = useCallback(() => {
     if (!isWeb) return
@@ -1127,6 +1212,39 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
       ?.catch?.(() => undefined)
   }
 
+  /**
+   * A video the child picked from the library. The url goes through the
+   * policy like every other route, so a video that lost its approval between
+   * the tap and the load does not play.
+   */
+  const onKidsPlay = useCallback((videoId: string) => {
+    ui$.kidsHomeVisible.set(false)
+    updateUrl(getWatchUrl(videoId))
+  }, [])
+
+  /**
+   * A candidate the parent wants to look at before approving it. The preview
+   * only lasts as long as the parent area is open.
+   */
+  const onParentPreview = useCallback(
+    (videoId: string) => {
+      requestPreview(videoId)
+      syncApprovedContent()
+      ui$.parentLibraryOpen.set(false)
+      ui$.kidsHomeVisible.set(false)
+      updateUrl(getWatchUrl(videoId))
+    },
+    [syncApprovedContent],
+  )
+
+  const onParentAreaClosed = useCallback(() => {
+    // Leaving the parent area gives the preview up, so the candidate is not
+    // watchable any more.
+    clearPreview()
+    syncApprovedContent()
+    ui$.parentLibraryOpen.set(false)
+  }, [syncApprovedContent])
+
   // Built once and handed to whichever wrapper is showing, so React keeps the
   // same native view across a mode change instead of remounting it.
   const playerView = (
@@ -1157,7 +1275,9 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
           headerPosition === 'bottom' && 'flex-col-reverse',
         )}
       >
-        {nIf(!pictureInPicture, <NouHeader getNoutube={getNoutube} />)}
+        {/* In the restricted session the header is replaced by the library's
+            own, which is simpler and carries the parent button. */}
+        {nIf(!pictureInPicture && !kidsMode, <NouHeader getNoutube={getNoutube} />)}
         {nIf(isWeb, <SettingsModal />)}
         {isWeb ? (
           <View className="relative flex-1 min-h-0">
@@ -1182,6 +1302,9 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
                 ref={nativeRef}
                 style={{
                   flex: 1,
+                  // The library sits over the webview while it is showing, so
+                  // the video underneath is neither seen nor touched.
+                  opacity: kidsMode && kidsHomeVisible ? 0 : 1,
                 }}
                 useragent={userAgent}
                 pullToRefreshEnabled={pullToRefreshEnabled}
@@ -1192,6 +1315,36 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
                 onMessage={onNativeMessage}
               />
             </View>
+            {/* The child facing library. It covers the webview, so the only
+                way out of it is a video the parent approved. */}
+            {nIf(
+              kidsMode,
+              <View
+                style={[StyleSheet.absoluteFill, { zIndex: 1 }]}
+                pointerEvents={kidsHomeVisible ? 'auto' : 'none'}
+              >
+                <KidsHome
+                  onPlay={onKidsPlay}
+                  onOpenParent={() => ui$.parentGateOpen.set(true)}
+                />
+              </View>,
+            )}
+            {nIf(
+              kidsMode && !kidsHomeVisible,
+              // A way back to the library that does not rely on the system
+              // back button, which a small child may not find.
+              <Pressable
+                onPress={() => {
+                  ui$.kidsHomeVisible.set(true)
+                  nativeRef.current?.executeJavaScript('window.NouTube?.pause?.()')
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t('kids.goHome')}
+                style={[styles.kidsBackButton, { top: headerHeight + 12 }]}
+              >
+                <MaterialIcons name="arrow-back" size={22} color="#ffffff" />
+              </Pressable>,
+            )}
             {/* One player webview in three presentations -- covering the app,
                 shrunk into the mini player, or waiting offscreen. It is never
                 unmounted between them, which is what keeps the video playing
@@ -1233,6 +1386,20 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
               </View>,
             )}
           </WebviewContainer>
+        )}
+        {nIf(
+          parentGateOpen,
+          <ParentGateModal
+            onClose={() => ui$.parentGateOpen.set(false)}
+            onUnlocked={() => {
+              ui$.parentGateOpen.set(false)
+              ui$.parentLibraryOpen.set(true)
+            }}
+          />,
+        )}
+        {nIf(
+          parentLibraryOpen,
+          <ParentLibraryModal onClose={onParentAreaClosed} onPreview={onParentPreview} />,
         )}
         {nIf(
           embedVideoId,

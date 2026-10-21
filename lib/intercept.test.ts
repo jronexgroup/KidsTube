@@ -323,7 +323,7 @@ describe('intercept original title rewriting', () => {
       },
     ]
 
-    const transformed = JSON.parse(transformGetWatchResponse(JSON.stringify(response), { showOriginalVideoTitle: true }))
+    const transformed = JSON.parse(transformGetWatchResponse(JSON.stringify(response), undefined, { showOriginalVideoTitle: true }))
 
     expect(transformed[0].playerResponse.microformat.playerMicroformatRenderer.title.simpleText).toBe('Original title')
   })

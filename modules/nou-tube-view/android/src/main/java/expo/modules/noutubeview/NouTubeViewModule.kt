@@ -173,6 +173,20 @@ class NouTubeViewModule : Module() {
       }
     }
 
+    // The videos a parent has approved, and the one candidate the parent is
+    // reviewing. The webview client refuses every other url.
+    Function("setApprovedContent") { videoIds: List<String>, previewVideoId: String ->
+      NouKidsPolicy.update(
+        enabled = true,
+        approvedVideoIds = videoIds.toSet(),
+        previewVideoId = previewVideoId.orEmpty(),
+      )
+    }
+
+    Function("setKidsMode") { enabled: Boolean ->
+      NouKidsPolicy.enabled = enabled
+    }
+
     AsyncFunction("fetchFeed") Coroutine { url: String ->
       return@Coroutine fetchFeed(url)
     }
@@ -344,6 +358,12 @@ class NouTubeViewModule : Module() {
       }
 
       AsyncFunction("loadUrl") { view: NouTubeView, url: String ->
+        // A programmatic load does not go through shouldOverrideUrlLoading, so
+        // the policy is checked here as well.
+        if (NouKidsPolicy.enabled && !NouKidsPolicy.isAllowed(url)) {
+          emit("kids-blocked", mapOf("url" to url))
+          return@AsyncFunction
+        }
         view.webView.loadUrl(url)
       }
 

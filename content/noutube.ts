@@ -10,6 +10,11 @@ import { emit, isYTMusic } from './utils'
 import { createDefaultUserStylesSnapshot, type UserStylesSnapshot } from '../lib/user-styles'
 import { createDefaultBlocklistSnapshot, type BlocklistSnapshot } from '../lib/blocklist'
 import {
+  createDefaultApprovedContent,
+  normalizeApprovedContent,
+  type ApprovedContentSnapshot,
+} from '../lib/content-policy'
+import {
   getHeldPlaylist,
   getPlayingPlaylist,
   getPlaylistNeighborUrl,
@@ -20,10 +25,12 @@ import {
 export const noutubeSettingsEvent = 'noutube:settings'
 export const noutubeUserStylesEvent = 'noutube:user-styles'
 export const noutubeBlocklistEvent = 'noutube:blocklist'
+export const noutubeApprovedContentEvent = 'noutube:approved-content'
 
 let settings: Record<string, unknown> = {}
 let userStyles = createDefaultUserStylesSnapshot()
 let blocklist = createDefaultBlocklistSnapshot()
+let approvedContent = createDefaultApprovedContent()
 
 const getPlayer = (): any => document.getElementById('movie_player')
 
@@ -84,6 +91,17 @@ function setBlocklist(next?: BlocklistSnapshot) {
   blocklist = next || createDefaultBlocklistSnapshot()
   window.dispatchEvent(new CustomEvent(noutubeBlocklistEvent, { detail: blocklist }))
   return blocklist
+}
+
+/** The videos a parent has approved. The page filters its responses by them. */
+function getApprovedContent() {
+  return approvedContent
+}
+
+function setApprovedContent(next?: ApprovedContentSnapshot) {
+  approvedContent = next ? normalizeApprovedContent(next) : createDefaultApprovedContent()
+  window.dispatchEvent(new CustomEvent(noutubeApprovedContentEvent, { detail: approvedContent }))
+  return approvedContent
 }
 
 // m.youtube.com keeps the playlist in the page rather than in the player, so
@@ -215,6 +233,10 @@ export function initNouTube() {
     setBlocklist(window.NouTubeBlocklist)
   }
 
+  if (window.NouTubeApprovedContent) {
+    setApprovedContent(window.NouTubeApprovedContent)
+  }
+
   if (window.NouTubeUserStyles) {
     setUserStyles(window.NouTubeUserStyles)
   }
@@ -233,6 +255,8 @@ export function initNouTube() {
     setUserStyles,
     getBlocklist,
     setBlocklist,
+    getApprovedContent,
+    setApprovedContent,
     preparePictureInPicture,
     setPictureInPicture,
     shortsHidden: true,
