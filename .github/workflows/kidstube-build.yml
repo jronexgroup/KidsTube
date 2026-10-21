@@ -28,6 +28,13 @@ jobs:
           bun link
           bun install --frozen-lockfile
 
+      # The type shims are generated locally and gitignored, so the runner has
+      # to be given them before the type check can see the NativeWind props.
+      - name: write the type shims
+        run: |
+          printf '/// <reference types="nativewind/types" />\n' > nativewind-env.d.ts
+          printf '/// <reference types="expo/types" />\n' > expo-env.d.ts
+
       - name: typecheck
         run: bunx tsc --noEmit
 
