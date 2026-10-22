@@ -54,6 +54,8 @@ export interface ContentRecord {
   title: string
   channelId?: string
   channelName?: string
+  /** The @handle of the channel, for the parent's reference. */
+  channelHandle?: string
   language: ContentLanguage
   category: ContentCategory
   ageBand?: string
@@ -512,6 +514,7 @@ export function normalizeContentRecord(raw: any): ContentRecord | null {
     title,
     channelId: normalizeString(raw.channelId),
     channelName: normalizeString(raw.channelName),
+    channelHandle: normalizeString(raw.channelHandle),
     language: normalizeLanguage(raw.language),
     category,
     ageBand: normalizeString(raw.ageBand),
