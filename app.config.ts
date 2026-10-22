@@ -64,7 +64,8 @@ module.exports = ({ config }: { config: ExpoConfig }) => {
           image: './assets/images/splash-icon.png',
           imageWidth: 200,
           resizeMode: 'contain',
-          backgroundColor: '#f9fafb',
+          // A soft cream, to sit behind the yellow of the logo.
+          backgroundColor: '#fffbe8',
           dark: {
             image: './assets/images/splash-icon.png',
             backgroundColor: '#27272a',

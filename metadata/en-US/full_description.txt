@@ -1,7 +1,7 @@
-YouTube and YouTube Music in a single app. No ads, plays in the background.
-<ul><li>Manage watchlist, music library without login</li><li>Manage watch history without login</li><li>Download video</li><li>RSS feed reader for YouTube channels</li><li>Hide shorts</li><li>Live chat</li><li>Play original audio</li><li>Customize with CSS</li></ul>
+A child-facing video app for learning, built from NouTube. A child sees only the videos a parent has approved.
+<ul><li>Bengali-first: বাংলা শিখি, বাংলা পড়া, ছড়া, সংখ্যা ও গণিত</li><li>English learning: ABCD, phonics, rhymes, counting and vocabulary</li><li>General learning: shapes, colours, animals, fruits, everyday knowledge, good habits and safety</li><li>Islamic learning in Bengali: Quran, duas, the stories of the prophets, adab and akhlaq</li><li>Shorts, search, feeds and channel browsing are removed</li><li>Autoplay is off, and a video never rolls into the next one</li><li>External links are blocked</li><li>No ads in the app</li></ul>
 <h2>How it works</h2>
-<ul><li>Wrap https://m.youtube.com and https://music.youtube.com in Android webview</li><li>Inject code to block ads</li><li>Hook playback controls and support playing in background</li></ul>
-<h2>Desktop version</h2>
-Desktop version shares the same code base with mobile version.
-Download Linux/macOS/Windows version from <a href="https://github.com/nonbili/NouTube-Desktop/releases">NouTube-Desktop</a>.
+<ul><li>An allowlist of approved videos is the only source of content: an unapproved video is refused</li><li>A parent approves, rejects, adds and removes videos and channels behind a PIN</li><li>There is no default PIN, and no video is approved by default</li></ul>
+<h2>Please note</h2>
+<ul><li>This is a client-side filter on top of YouTube, not a tamper-proof parental control. Use the device's own parental controls as well.</li><li>The bundled candidate list has not been reviewed; every item starts as pending for a parent to look at.</li></ul>
+<p>Based on <a href="https://github.com/nonbili/NouTube">NouTube</a> by the NouTube contributors, licensed under the GNU AGPL-3.0. Not endorsed by the NouTube maintainers.</p>

@@ -25,9 +25,9 @@ describe('settings transfer', () => {
 
   it('rejects files that are not settings backups', () => {
     expect(() => parseSettingsBackup('not json')).toThrow('Not a valid JSON file')
-    expect(() => parseSettingsBackup('{"kind":"something-else"}')).toThrow('Not a NouTube settings file')
+    expect(() => parseSettingsBackup('{"kind":"something-else"}')).toThrow('Not a KidsTube settings file')
     expect(() => parseSettingsBackup(JSON.stringify({ kind: SETTINGS_BACKUP_KIND }))).toThrow(
-      'Unsupported NouTube settings file version',
+      'Unsupported KidsTube settings file version',
     )
     expect(() =>
       parseSettingsBackup(JSON.stringify({ kind: SETTINGS_BACKUP_KIND, version: 2, settings: {} })),

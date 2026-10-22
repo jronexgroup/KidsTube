@@ -28,7 +28,7 @@ import { SettingsBlocklistContent } from './SettingsBlocklistContent'
 import { useTwColor } from '@/lib/theme'
 import { FAQ_URL } from '@/lib/help'
 
-const repo = 'https://github.com/nonbili/NouTube'
+const repo = 'https://github.com/jronexgroup/KidsTube'
 const donateLinks = [
   { label: 'GitHub Sponsors', detail: 'github.com/sponsors/rnons', url: 'https://github.com/sponsors/rnons' },
   { label: 'Liberapay', detail: 'liberapay.com/rnons', url: 'https://liberapay.com/rnons' },
@@ -424,7 +424,7 @@ export const SettingsTree = forwardRef<
 
             <SettingsSection label={t('about.code')}>
               <View className={surfaceCls}>
-                <SettingsExternalRow title="GitHub" detail="github.com/nonbili/NouTube" href={repo} icon="code" isLast />
+                <SettingsExternalRow title="GitHub" detail="github.com/jronexgroup/KidsTube" href={repo} icon="code" isLast />
               </View>
             </SettingsSection>
 

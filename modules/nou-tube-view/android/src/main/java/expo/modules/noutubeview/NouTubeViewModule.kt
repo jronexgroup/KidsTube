@@ -174,12 +174,34 @@ class NouTubeViewModule : Module() {
     }
 
     // The videos a parent has approved, and the one candidate the parent is
-    // reviewing. The webview client refuses every other url.
-    Function("setApprovedContent") { videoIds: List<String>, previewVideoId: String ->
+    // reviewing. The webview client refuses every other url. The ids come in
+    // as one JSON string, so the call needs no argument types beyond a
+    // string.
+    Function("setApprovedContent") { payload: String ->
+      val videoIds = mutableSetOf<String>()
+      var previewVideoId = ""
+      try {
+        val json = org.json.JSONObject(payload)
+        val ids = json.optJSONArray("videoIds")
+        if (ids != null) {
+          for (index in 0 until ids.length()) {
+            val id = ids.optString(index)
+            if (id.isNotEmpty()) {
+              videoIds.add(id)
+            }
+          }
+        }
+        previewVideoId = json.optString("previewVideoId")
+      } catch (e: Exception) {
+        // A payload that cannot be read leaves the library empty, which
+        // refuses everything rather than letting anything through.
+        videoIds.clear()
+        previewVideoId = ""
+      }
       NouKidsPolicy.update(
         enabled = true,
-        approvedVideoIds = videoIds.toSet(),
-        previewVideoId = previewVideoId.orEmpty(),
+        approvedVideoIds = videoIds,
+        previewVideoId = previewVideoId,
       )
     }
 
@@ -361,7 +383,7 @@ class NouTubeViewModule : Module() {
         // A programmatic load does not go through shouldOverrideUrlLoading, so
         // the policy is checked here as well.
         if (NouKidsPolicy.enabled && !NouKidsPolicy.isAllowed(url)) {
-          emit("kids-blocked", mapOf("url" to url))
+          view.emit("kids-blocked", mapOf("url" to url))
           return@AsyncFunction
         }
         view.webView.loadUrl(url)

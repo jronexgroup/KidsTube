@@ -603,7 +603,9 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
         .filter((record) => record.approvalStatus === 'approved')
         .map((record) => record.videoId)
       try {
-        NouTubeViewModule.setApprovedContent(ids, getPreviewVideoId())
+        NouTubeViewModule.setApprovedContent(
+          JSON.stringify({ videoIds: ids, previewVideoId: getPreviewVideoId() }),
+        )
         NouTubeViewModule.setKidsMode(isKidsMode())
       } catch (error) {
         console.error('setApprovedContent failed', error)

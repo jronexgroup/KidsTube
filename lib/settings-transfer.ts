@@ -30,7 +30,7 @@ export const createSettingsBackup = (): SettingsBackup => ({
 
 export const exportSettingsJson = () => JSON.stringify(createSettingsBackup(), null, 2)
 
-export const settingsBackupFilename = () => `NouTube_settings_${Date.now()}.json`
+export const settingsBackupFilename = () => `KidsTube_settings_${Date.now()}.json`
 
 /**
  * Parse a settings backup file. Unknown or missing sections are dropped, every
@@ -51,18 +51,18 @@ export const parseSettingsBackup = (
   }
 
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    throw new Error('Not a NouTube settings file')
+    throw new Error('Not a KidsTube settings file')
   }
 
   const backup = data as Partial<SettingsBackup>
   if (backup.kind !== SETTINGS_BACKUP_KIND) {
-    throw new Error('Not a NouTube settings file')
+    throw new Error('Not a KidsTube settings file')
   }
   if (backup.version !== SETTINGS_BACKUP_VERSION) {
     throw new Error(
       typeof backup.version === 'number' && backup.version > SETTINGS_BACKUP_VERSION
-        ? 'This settings file was created by a newer version of NouTube'
-        : 'Unsupported NouTube settings file version',
+        ? 'This settings file was created by a newer version of KidsTube'
+        : 'Unsupported KidsTube settings file version',
     )
   }
 
