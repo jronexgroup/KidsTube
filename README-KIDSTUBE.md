@@ -33,7 +33,7 @@ one of them does not open the door on its own.
 | Layer | Where | What it does |
 |---|---|---|
 | **1. The policy** | `lib/content-policy.ts` | The single place that decides whether a url may be opened. Pure, no React Native or browser APIs, so the app, the page script and the tests all use the same rules. |
-| **2. The responses** | `lib/intercept.ts`, `content/intercept.ts` | Every InnerTube response is filtered down to the approved ids before the page renders it. Unapproved videos, Shorts, playlists, channel links and live chat are removed from the data, not just hidden with CSS. |
+| **2. The responses** | `lib/intercept.ts`, `content/intercept.ts` | Every InnerTube response is filtered down to the approved ids before the page renders it. Unapproved videos, Shorts, playlists, channel links and live chat are removed from the data, not just hidden with CSS. The autoplay set and the prefetch hints are taken out whole, because they are not list items and a list filter never sees them. |
 | **3. The page** | `content/kids-guard.ts` | Refuses a navigation the page attempts on its own: `history.pushState`, a tap on a link, `window.open`, a form submit. Also stops the player from rolling into the next video and takes the "up next" and comment panels out of the page. |
 | **4. The native view** | `modules/nou-tube-view/.../NouKidsPolicy.kt` | The Android webview refuses every url that is not an approved video, including a programmatic `loadUrl`, which does not go through `shouldOverrideUrlLoading`. |
 
@@ -101,8 +101,29 @@ Categories, in the order the child sees them:
 
 `content/kids-seed.json` holds the candidates from the supplied
 `kidstube-list`, and **every one of them starts as `pending`**. Nothing
-reaches the child until an adult looks at it and approves it. The parent area
-has an "import the list" button that copies them in.
+reaches the child until an adult looks at it and approves it. The candidates
+are brought in the first time the app runs, so the parent opens the app and
+finds the list to work through.
+
+Every entry has been **checked against the video itself**: the real title,
+the real channel name, the real @handle and the real channel id were read
+from each video's page. Two of the handles that the supplied list only named
+were wrong, and are now right:
+
+| The supplied list named | The real channel |
+|---|---|
+| Jugnu Kids - Bangla Nursery Rhymes & Baby Songs | `@JugnuKidsBangla` |
+| YouQaria Kids Nursery Rhymes & Islamic Cartoons | `@YouQaria` |
+
+The one title that was not legible in the supplied list turned out to be
+"ABC Song with ChuChu Toy Train" by ChuChu TV, so it is filed as an English
+alphabet song rather than as an unknown. The only handle still worth a
+second look is `@ChottoDuniya`, which resolves to a channel now called
+গল্পের রাজ্য; the seed says so.
+
+The parent can also pull a channel's recent videos in with one button, which
+reads the channel's RSS feed. Those arrive as pending candidates too, one by
+one, so a later upload cannot slip in on the strength of an old decision.
 
 ---
 
@@ -150,6 +171,32 @@ same key and an installed app can be updated in place.
 
 ---
 
+## What has been checked
+
+Not everything here has been run on a phone yet, so this is an honest list of
+what was verified and how.
+
+**Verified by running it:**
+
+- The policy decisions, against every url shape YouTube uses (`bun test`).
+- The allowlist filter, against **live InnerTube responses**. A real search
+  response carried 22 videos; after the filter, 0 were left. A real "up next"
+  response carried 50; after the filter, 1 was left, and that one is the video
+  the child is watching. Nothing leaked.
+- The native policy, against the same rules, in Kotlin (`KidsPolicyTest`).
+- The channel import, against a real channel feed.
+- The type check, the unit tests and the page script bundle, on every push.
+
+**Not yet verified:**
+
+- The app on a real Android device. The build, the launcher icon and the
+  splash are checked by the build, but the child facing screen has not been
+  looked at on a phone.
+- The video actually playing, and the ad behaviour of a real playback. The
+  ad blocking is inherited from NouTube and has to be retested on this build
+  rather than assumed.
+- The parent gate against a determined child.
+
 ## Known limitations
 
 These are real, and worth reading before the app is put in front of a child.
@@ -162,10 +209,10 @@ These are real, and worth reading before the app is put in front of a child.
 - **The policy is only as good as the review.** Approving a channel wholesale
   approves whatever it uploads next. Video-level approval is the safer
   default, and the parent area warns about this.
-- **The seed list has not been reviewed.** Every entry in
-  `content/kids-seed.json` is pending on purpose. Titles and row alignment in
-  the supplied list were uncertain, and some of the channel handles are
-  guesses from the channel name.
+- **The seed list has not been watched.** Every entry in
+  `content/kids-seed.json` is pending on purpose. The titles, channels and
+  handles are now verified against the videos, but nobody has watched the
+  videos end to end, and a parent still has to do that before approving.
 - **Islamic content needs a careful reviewer.** Recitation, pronunciation and
   meaning have to be checked against a reliable source, and the reviewer's
   note is kept with the item for that reason.
