@@ -122,7 +122,12 @@ function transformSectionListItem(item: SectionListItem, blocklist: BlocklistSna
   return item
 }
 
-export function filterListResponse(data: any, blocklist?: BlocklistSnapshot, options: TransformOptions = {}) {
+export function filterListResponse(
+  data: any,
+  blocklist?: BlocklistSnapshot,
+  options: TransformOptions = {},
+  isRoot = true,
+) {
   if (!data || typeof data !== 'object') {
     return
   }
@@ -138,10 +143,21 @@ export function filterListResponse(data: any, blocklist?: BlocklistSnapshot, opt
           !itemMatchesBlocklist(item, blocklist) &&
           !itemFailsAllowlist(item, allowlist),
       )
-      data[key].forEach((item: any) => filterListResponse(item, blocklist, options))
+      data[key].forEach((item: any) => filterListResponse(item, blocklist, options, false))
     } else if (value && typeof value === 'object') {
-      filterListResponse(value, blocklist, options)
+      filterListResponse(value, blocklist, options, false)
     }
+  }
+
+  // What the list filter cannot see: the video the player is about to roll
+  // into, the video the page is about to fetch, and any leftover mention of a
+  // video nobody approved.
+  //
+  // It runs once, on the whole response, rather than on every level of the
+  // walk: a scrub that ran bottom up would take the id out of an endpoint
+  // before the level above could take the endpoint itself away.
+  if (allowlist && isRoot) {
+    scrubKidsData(data, allowlist)
   }
 }
 
@@ -167,7 +183,85 @@ const DISALLOWED_RENDERER_KEYS = [
   // Live chat is not a place for a child to be.
   'liveChatRenderer',
   'liveChatContinuation',
+  // A Short is never allowed, even in the unlikely case that its id somehow
+  // ends up in the allowlist.
+  'reelItemRenderer',
 ]
+
+/**
+ * The parts of a response that name the video the player is going to play
+ * next, or that the page is about to fetch.
+ *
+ * These are not list items, so the allowlist filter never sees them, but they
+ * are the most direct route to an unapproved video: the autoplay set is
+ * exactly what the player rolls into when the current video ends, and the
+ * prefetch data is what the page pulls in behind the child's back. They are
+ * taken out of the response whole.
+ */
+const AUTOPLAY_KEYS = [
+  'autoplay',
+  'autoplayVideo',
+  'autoplaySet',
+  'autoplayEndpoint',
+  'autoplaySwitchButtonRenderer',
+  'endscreen',
+  'endscreenRenderer',
+  'webPrefetchData',
+  'prefetchData',
+  'playerAutoplay',
+]
+
+/**
+ * Takes the player's own choice of what to play next out of the response, and
+ * takes out any leftover mention of a video nobody approved.
+ *
+ * The list items are handled by the allowlist filter, which drops them whole.
+ * This handles what is left: a bare endpoint, a prefetch hint, an id in a
+ * framework update. A response that mentions an unapproved video gives it up
+ * either way.
+ */
+function scrubKidsData(node: any, approved: Set<string>): void {
+  if (!node || typeof node !== 'object') {
+    return
+  }
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      scrubKidsData(item, approved)
+    }
+    return
+  }
+
+  for (const key of Object.keys(node)) {
+    if (AUTOPLAY_KEYS.includes(key)) {
+      delete node[key]
+      continue
+    }
+    const value = node[key]
+    if (!value || typeof value !== 'object') {
+      continue
+    }
+
+    // A bare endpoint naming a video nobody approved.
+    for (const endpointKey of ['watchEndpoint', 'reelWatchEndpoint']) {
+      const endpoint = value[endpointKey]
+      if (endpoint && typeof endpoint === 'object' && typeof endpoint.videoId === 'string') {
+        if (!approved.has(endpoint.videoId)) {
+          delete value[endpointKey]
+        }
+      }
+    }
+
+    // A leftover id on something that is not a list item.
+    for (const idKey of ['videoId', 'contentId']) {
+      const id = value[idKey]
+      if (typeof id === 'string' && !approved.has(id)) {
+        delete value[idKey]
+      }
+    }
+
+    scrubKidsData(value, approved)
+  }
+}
 
 /**
  * Whether a list item has to go because the allowlist does not cover it.
