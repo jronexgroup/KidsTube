@@ -17,6 +17,8 @@ import {
 import kidsSeed from '@/content/kids-seed.json'
 
 interface Store extends ContentLibrary {
+  /** Set once the candidate list has been brought in, so it comes back only once. */
+  seedImported: boolean
   /** Adds a candidate video. It starts out pending, never approved. */
   addRecord: (record: Partial<ContentRecord>) => string
   /** Replaces the fields of an existing record. */
@@ -86,6 +88,7 @@ const seedChannels = (): ChannelCandidate[] => {
 
 export const approvedContent$: Observable<Store> = observable<Store>({
   ...createDefaultContentLibrary(),
+  seedImported: false,
 
   addRecord: (record) => {
     const created = normalizeContentRecord({
@@ -171,6 +174,7 @@ export const approvedContent$: Observable<Store> = observable<Store>({
   },
 
   importSeed: () => {
+    approvedContent$.seedImported.set(true)
     const existingRecords = approvedContent$.records.get()
     const knownVideos = new Set(existingRecords.map((item) => item.videoId))
     const incomingRecords = seedRecords().filter((item) => !knownVideos.has(item.videoId))
@@ -229,7 +233,26 @@ syncObservable(approvedContent$, {
     name: 'approvedContent',
     plugin: ObservablePersistMMKV,
     transform: {
-      load: (data: Store) => normalizeContentLibrary(data),
+      load: (data: Store) => {
+        const library = normalizeContentLibrary(data)
+        if (data?.seedImported) {
+          return { ...library, seedImported: true }
+        }
+        // The first time the app runs, the candidate list is brought in so
+        // the parent has something to review. Every one of them arrives
+        // pending: nothing reaches the child before a parent has looked at
+        // it. The flag stops them coming back once they are removed.
+        const records = seedRecords().filter((item) => !library.records.some((r) => r.videoId === item.videoId))
+        const channels = seedChannels().filter(
+          (item) => !library.channels.some((c) => c.handle.toLowerCase() === item.handle.toLowerCase()),
+        )
+        return {
+          ...library,
+          records: library.records.concat(records),
+          channels: library.channels.concat(channels),
+          seedImported: true,
+        }
+      },
     },
   },
 })
